@@ -31,4 +31,5 @@ var leaderSchema = new  Schema({
     },
 })
 
-module.exports = leaderSchema;
+var Leaders = mongoose.model('Leader', leaderSchema);
+module.exports = Leaders;
