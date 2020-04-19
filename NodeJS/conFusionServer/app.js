@@ -3,7 +3,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const mongoose = require('mongoose');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+var passport = require('passport');
+var authenticate = require('./authenticate');
+
+//To start mongo db server 
+//Move to the mongodb folder and then start the MongoDB server by typing the following at the prompt: C:\mongodb
+//mongod --dbpath=data --bind_ip 127.0.0.1
 
 
 var indexRouter = require('./routes/index');
@@ -12,10 +19,17 @@ var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
-var session = require('express-session');
-var FileStore = require('session-file-store')(session);
+
+const mongoose = require('mongoose');
 
 const Dishes = require('./models/dishes');
+
+const url = 'mongodb://localhost:27017/conFusion';
+const connect = mongoose.connect(url);
+
+connect.then((db) => {
+  console.log("Connected correctly to server");
+}, (err) => { console.log(err); });
 
 var app = express();
 
@@ -23,12 +37,11 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-
 //Dependencies
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-09876-54321'));
+//app.use(cookieParser('12345-67890-09876-54321'));
 
 //Session
 app.use(session({
@@ -39,29 +52,25 @@ app.use(session({
   store: new FileStore()
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-//Basic Autentication with cookies
+//Basic Autentication with passport
 function auth (req, res, next) {
-  console.log(req.session);
+  console.log(req.user);
 
-if(!req.session.user) {
+  if (!req.user) {
     var err = new Error('You are not authenticated!');
     err.status = 403;
-    return next(err);
-}
-else {
-  if (req.session.user === 'authenticated') {
-    next();
+    next(err);
   }
   else {
-    var err = new Error('You are not authenticated!');
-    err.status = 403;
-    return next(err);
+        next();
   }
-}
 }
 
 
@@ -69,19 +78,13 @@ app.use(auth);
 //End Basic Authentication
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes',dishRouter);
 app.use('/promotions',promoRouter);
 app.use('/leaders',leaderRouter);
 
-const url = 'mongodb://localhost:27017/conFusion';
-const connect = mongoose.connect(url);
 
-connect.then((db) => {
-  console.log("Connected correctly to server");
-}, (err) => { console.log(err); });
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
