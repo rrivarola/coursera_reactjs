@@ -1,3 +1,5 @@
+var authenticate = require('../authenticate');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
