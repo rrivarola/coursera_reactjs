@@ -13,7 +13,8 @@ favoritesRouter.route('/')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .get(cors.cors, (req, res, next) => {
         Favorites.find({})
-            .populate('comments.author')
+            .populate('user')
+            .populate( {path: 'dishes.dish'})
             .then((favorites) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
