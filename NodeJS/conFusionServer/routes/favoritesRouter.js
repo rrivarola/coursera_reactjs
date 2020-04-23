@@ -97,6 +97,41 @@ favoritesRouter.route('/')
         }, (err) => next(err))
             .catch((err) => next(err));
     })
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+        Favorites.findOne({user: req.user._id})
+        .then((favorite)=>{
+            if (favorite) {
+                const found= favorite.dishes.find(dish => dish._id == req.params.dishId);
+                if (found != null) {
+                    for (var i = 0; i<(favorite.dishes.length - 1);  i++) {
+                        if(favorite.dishes[i]._id==req.params.dishId)
+                        {
+                            break;
+                        }
+                    }
+
+                   favorite.dishes.id(favorite.dishes[i]._id).remove()
+                   favorite.save()
+                        .then((dish) => {
+                            res.statusCode = 200;
+                            res.setHeader('Content-Type', 'application/json');
+                            res.json(dish);
+                        }, (err) => next(err));
+                }
+                else{
+                    err = new Error('Dish ' + req.params.dishId + ' not found');
+                    err.statusCode = 404;
+                    return next(err);
+                }
+            }
+            else{
+                err = new Error('Dish ' + req.params.dishId + ' not found');
+                err.status = 404;
+                return next(err);
+            }
+        }, (err) => next(err))
+            .catch((err) => next(err));
+    });
 
 
 
