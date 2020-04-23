@@ -75,9 +75,16 @@ favoritesRouter.route('/')
             // if (err) {
             //     next(err);
             // }
+            console.log("DISH " + req.params.dishId);
+            favorite.dishes.map(d=>{
+                console.log(d._id);
+            });
             if (favorite) {
-                var f= favorite.dishes.find(dish => dish._id == req.params.dishId) == null;
-                if (f !== null) {
+                const found= favorite.dishes.find(dish => dish._id == req.params.dishId);
+                const valorindice = favorite.dishes.indexOf(req.params.dishId);
+                //console.log("valor de indice: "+ valorindice);
+                console.log("valor de found: "+found);
+                if (found == null) {
                     favorite.dishes.push(req.params.dishId);
                     favorite.save()
                         .then((f) => {
@@ -85,6 +92,11 @@ favoritesRouter.route('/')
                             res.setHeader('Content-Type', 'application/json');
                             res.json(f);
                         }, (err) => next(err));
+                }
+                else{
+                    err = new Error('Dish ' + req.params.dishId + ' already exist');
+                    err.status = 404;
+                    return next(err);
                 }
             }
             else{
