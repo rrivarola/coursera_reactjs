@@ -72,18 +72,8 @@ favoritesRouter.route('/')
     .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Favorites.findOne({user: req.user._id})
         .then((favorite)=>{
-            // if (err) {
-            //     next(err);
-            // }
-            console.log("DISH " + req.params.dishId);
-            favorite.dishes.map(d=>{
-                console.log(d._id);
-            });
             if (favorite) {
                 const found= favorite.dishes.find(dish => dish._id == req.params.dishId);
-                const valorindice = favorite.dishes.indexOf(req.params.dishId);
-                //console.log("valor de indice: "+ valorindice);
-                console.log("valor de found: "+found);
                 if (found == null) {
                     favorite.dishes.push(req.params.dishId);
                     favorite.save()
@@ -94,8 +84,8 @@ favoritesRouter.route('/')
                         }, (err) => next(err));
                 }
                 else{
-                    err = new Error('Dish ' + req.params.dishId + ' already exist');
-                    err.status = 404;
+                    err = new Error('Dish ' + req.params.dishId + ' already exist as favorite');
+                    err.status = 403;
                     return next(err);
                 }
             }
