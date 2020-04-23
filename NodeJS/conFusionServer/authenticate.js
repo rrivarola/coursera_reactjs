@@ -19,7 +19,7 @@ opts.secretOrKey = config.secretKey;
 
 exports.jwtPassport = passport.use(new JwtStrategy(opts,
     (jwt_payload, done) => {
-        console.log("JWT payload: ", jwt_payload);
+        //console.log("JWT payload: ", jwt_payload);
         User.findOne({ _id: jwt_payload._id }, (err, user) => {
             if (err) {
                 return done(err, false);
@@ -38,7 +38,7 @@ exports.verifyUser = passport.authenticate('jwt', { session: false });
 
 
 exports.verifyAdmin = function (req,res,next) {
-    console.log(req.user);
+    //console.log(req.user);
     if (req.user.admin) {
         next();
     }
