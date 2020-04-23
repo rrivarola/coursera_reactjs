@@ -26,8 +26,8 @@ favoritesRouter.route('/')
             if (err) {
                 next(err);
             }
-            if (favorite)// add the dishes specified in the body of the message to the list of favorite dishes for the user
-            //if the dishes do not already exists in the list of favorites.
+            if (favorite)// add the dishes specified in the body of the message to the list of favorite dishes for
+             //the user if the dishes do not already exists in the list of favorites.
             {
                 req.body.map(f => {
                     if (favorite.dishes.find(dish => dish._id==f._id)==null){
@@ -42,10 +42,8 @@ favoritesRouter.route('/')
                     }, (err) => next(err));
             }
             else {//create a favorite document 
-                console.log("No existe usuario, crea el documento favorito");
                 Favorites.create({ user: req.user._id, dishes: req.body })
                     .then((favorite) => {
-                        console.log('Favorites created ', favorite);
                         res.statusCode = 200;
                         res.setHeader('Content-Type', 'application/json');
                         res.json(favorite);
@@ -59,7 +57,7 @@ favoritesRouter.route('/')
         res.end('PUT operation not supported on /favorites');
     })
     .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        Favorites.remove({})
+        Favorites.remove({user: req.user._id})
             .then((resp) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
