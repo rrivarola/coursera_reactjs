@@ -7,11 +7,15 @@ var favoriteSchema = new Schema({
         ref: 'User'
     },
     dishes: [{
-        dish: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Dish' //Refer to the model 'Dish'  => var Dishes = mongoose.model('Dish', dishSchema);
-        }
     }]
+    // dishes: [{
+    //     dish: {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: 'Dish' //Refer to the model 'Dish'  => var Dishes = mongoose.model('Dish', dishSchema);
+    //     }
+    // }]
 }, {
     timestamps: true
 });

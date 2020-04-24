@@ -11,10 +11,10 @@ favoritesRouter.use(bodyParser.json());
 
 favoritesRouter.route('/')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
-    .get(cors.cors, (req, res, next) => {
-        Favorites.find({})
+    .get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+        Favorites.find({user: req.user._id})
             .populate('user')
-            .populate( {path: 'dishes.dish'})
+            .populate('dishes')
             .then((favorites) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -70,7 +70,7 @@ favoritesRouter.route('/')
 
     favoritesRouter.route('/:dishId')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
-    .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorites.findOne({user: req.user._id})
         .then((favorite)=>{
             if (favorite) {
@@ -90,10 +90,15 @@ favoritesRouter.route('/')
                     return next(err);
                 }
             }
-            else{
-                err = new Error('Dish ' + req.params.dishId + ' not found');
-                err.status = 404;
-                return next(err);
+            else {//create a favorite document 
+                //const arrayDishes = ["{_id:"+ req.params.dishId+"}"];
+                Favorites.create({ user: req.user._id,dishes:[ req.params.dishId]})
+                    .then((favorite) => {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json(favorite);
+                    }, (err) => next(err))
+                    .catch((err) => next(err));
             }
         }, (err) => next(err))
             .catch((err) => next(err));
