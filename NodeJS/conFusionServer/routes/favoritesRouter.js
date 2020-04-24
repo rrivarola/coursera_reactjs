@@ -53,11 +53,11 @@ favoritesRouter.route('/')
             }
         });
     })
-    .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser,  (req, res, next) => {
         res.statusCode = 403;
         res.end('PUT operation not supported on /favorites');
     })
-    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser,  (req, res, next) => {
         Favorites.remove({ user: req.user._id })
             .then((resp) => {
                 res.statusCode = 200;
