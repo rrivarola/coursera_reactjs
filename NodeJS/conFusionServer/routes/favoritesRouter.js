@@ -91,7 +91,6 @@ favoritesRouter.route('/:dishId')
                     }
                 }
                 else {//create a favorite document 
-                    //const arrayDishes = ["{_id:"+ req.params.dishId+"}"];
                     Favorites.create({ user: req.user._id, dishes: [req.params.dishId] })
                         .then((favorite) => {
                             res.statusCode = 200;
