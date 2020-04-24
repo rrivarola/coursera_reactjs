@@ -12,7 +12,7 @@ favoritesRouter.use(bodyParser.json());
 favoritesRouter.route('/')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        Favorites.find({user: req.user._id})
+        Favorites.find({ user: req.user._id })
             .populate('user')
             .populate('dishes')
             .then((favorites) => {
@@ -22,7 +22,7 @@ favoritesRouter.route('/')
             }, (err) => next(err))
             .catch((err) => next(err));
     })
-    .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorites.findOne({ user: req.user._id }, (err, favorite) => {
             if (err) {
                 next(err);
@@ -68,74 +68,67 @@ favoritesRouter.route('/')
     });
 
 
-    favoritesRouter.route('/:dishId')
+favoritesRouter.route('/:dishId')
     .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        Favorites.findOne({user: req.user._id})
-        .then((favorite)=>{
-            if (favorite) {
-                const found= favorite.dishes.find(dish => dish._id == req.params.dishId);
-                if (found == null) {
-                    favorite.dishes.push(req.params.dishId);
-                    favorite.save()
-                        .then((f) => {
+        Favorites.findOne({ user: req.user._id })
+            .then((favorite) => {
+                if (favorite) {
+                    const found = favorite.dishes.find(dish => dish._id == req.params.dishId);
+                    if (found == null) {
+                        favorite.dishes.push(req.params.dishId);
+                        favorite.save()
+                            .then((f) => {
+                                res.statusCode = 200;
+                                res.setHeader('Content-Type', 'application/json');
+                                res.json(f);
+                            }, (err) => next(err));
+                    }
+                    else {
+                        err = new Error('Dish ' + req.params.dishId + ' already exist as favorite');
+                        err.status = 403;
+                        return next(err);
+                    }
+                }
+                else {//create a favorite document 
+                    //const arrayDishes = ["{_id:"+ req.params.dishId+"}"];
+                    Favorites.create({ user: req.user._id, dishes: [req.params.dishId] })
+                        .then((favorite) => {
                             res.statusCode = 200;
                             res.setHeader('Content-Type', 'application/json');
-                            res.json(f);
-                        }, (err) => next(err));
+                            res.json(favorite);
+                        }, (err) => next(err))
+                        .catch((err) => next(err));
                 }
-                else{
-                    err = new Error('Dish ' + req.params.dishId + ' already exist as favorite');
-                    err.status = 403;
-                    return next(err);
-                }
-            }
-            else {//create a favorite document 
-                //const arrayDishes = ["{_id:"+ req.params.dishId+"}"];
-                Favorites.create({ user: req.user._id,dishes:[ req.params.dishId]})
-                    .then((favorite) => {
-                        res.statusCode = 200;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json(favorite);
-                    }, (err) => next(err))
-                    .catch((err) => next(err));
-            }
-        }, (err) => next(err))
+            }, (err) => next(err))
             .catch((err) => next(err));
     })
-    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        Favorites.findOne({user: req.user._id})
-        .then((favorite)=>{
-            if (favorite) {
-                const found= favorite.dishes.find(dish => dish._id == req.params.dishId);
-                if (found != null) {
-                    for (var i = 0; i<(favorite.dishes.length - 1);  i++) {
-                        if(favorite.dishes[i]._id==req.params.dishId)
-                        {
-                            break;
-                        }
+    .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+        Favorites.findOne({ user: req.user._id })
+            .then((favorite) => {
+                if (favorite) {
+                    index = favorite.dishes.indexOf(req.params.dishId);
+                    if (index >= 0) {
+                        favorite.dishes.splice(index, 1);
+                        favorite.save()
+                            .then((dish) => {
+                                res.statusCode = 200;
+                                res.setHeader('Content-Type', 'application/json');
+                                res.json(dish);
+                            }, (err) => next(err));
                     }
-
-                   favorite.dishes.id(favorite.dishes[i]._id).remove()
-                   favorite.save()
-                        .then((dish) => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json(dish);
-                        }, (err) => next(err));
+                    else {
+                        err = new Error('Dish ' + req.params.dishId + ' not found');
+                        err.statusCode = 404;
+                        return next(err);
+                    }
                 }
-                else{
+                else {
                     err = new Error('Dish ' + req.params.dishId + ' not found');
-                    err.statusCode = 404;
+                    err.status = 404;
                     return next(err);
                 }
-            }
-            else{
-                err = new Error('Dish ' + req.params.dishId + ' not found');
-                err.status = 404;
-                return next(err);
-            }
-        }, (err) => next(err))
+            }, (err) => next(err))
             .catch((err) => next(err));
     });
 
